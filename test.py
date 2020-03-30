@@ -19,8 +19,9 @@ class mainWindow(QMainWindow):
         self.openGLWidget.setGeometry(0, 0, 500, 500)
         self.cube1 = cube((0, 0, 0))
         self.cube2 = cube((1, 0, 0))
-        self.shader.addShape(self.cube1)
-        self.shader.addShape(self.cube2)
+        self.cube3 = cube((0, 0, 1))
+        self.shader.addShapes(self.cube1, self.cube2, self.cube3)
+        self.shader.navigate(vVal = -45)
         self.shader.update()
 
 if __name__ == '__main__':

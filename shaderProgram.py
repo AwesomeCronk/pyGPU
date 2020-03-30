@@ -9,6 +9,7 @@ from exceptions import *
 
 class shader():
     #context data
+    parent = None
     context = None
     sizeX = 100
     sizeY = 100
@@ -17,7 +18,7 @@ class shader():
     rotateDegreeV = 0
     rotateDegreeH = 0
     zoomLevel = -5
-    vOffset = -90
+    vOffset = 0
 
     shapes = []
     #legalShapes = [cube]
@@ -33,16 +34,18 @@ class shader():
     fragShader = None
 
     def __init__(self, parent, context):
+        self.parent = parent
         self.context = context
         self.context.initializeGL = self.initGL
         self.context.paintGL = self.paintGL
 
-    def addShape(self, newShape):
-        #for s in self.legalShapes:
-         #   if not type(newShape) is s:
-          #      raise invalidShapeError("Shape {} is not valid.".format(s))
-           #     return
-        self.shapes.append(newShape)
+    def addShapes(self, *newShapes):
+        for newShape in newShapes:
+            #for s in self.legalShapes:
+             #   if not type(newShape) is s:
+              #      raise invalidShapeError("Shape {} is not valid.".format(s))
+               #     return
+            self.shapes.append(newShape)
 
     def update(self):
         self.context.update()
@@ -52,7 +55,7 @@ class shader():
         self.sizeY = y
         self.context.resizeGL(self.sizeX, self.sizeY)
 
-    def navigate(self, hVal, vVal, zVal):
+    def navigate(self, hVal = 0, vVal = 0, zVal = 0):
         self.rotateDegreeH += hVal
         self.rotateDegreeV += vVal
         self.zoomLevel += zVal
@@ -84,18 +87,19 @@ class shader():
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         
         for s in self.shapes:
-            glBegin(GL_LINES)
-            for w in s.wires:
-                for v in w:
-                    glVertex3fv(s.vertices[v])
-            glEnd()
-        
-            glBegin(GL_QUADS)
-            
-            for f in s.facets:
-                for v in f:
-                    glVertex3fv(s.vertices[v])
-            glEnd()
+            if s.drawWires:
+                glBegin(GL_LINES)
+                for w in s.wires:
+                    for v in w:
+                        glVertex3fv(s.vertices[v])
+                glEnd()
+
+            if s.drawFaces:
+                glBegin(GL_QUADS)
+                for f in s.facets:
+                    for v in f:
+                        glVertex3fv(s.vertices[v])
+                glEnd()
 
 class cube():
     render = True
