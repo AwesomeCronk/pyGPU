@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget
 
-from shaderProgram import shader, cube
+from shaderProgram import shader
+from shapes import cube
 import sys
 
 def run():

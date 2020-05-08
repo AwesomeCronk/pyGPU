@@ -4,7 +4,7 @@ from OpenGL.GL import (
                        glBegin, glEnd, glClear, glVertex3fv,
                        GL_LINES, GL_QUADS, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_FLOAT, GL_TRIANGLES, glEnableVertexAttribArray, glDrawArrays,
                        glGenVertexArrays, glBindVertexArray, glGenBuffers, glBindBuffer,
-                       GL_ARRAY_BUFFER, GLfloat, glBufferData, GL_STATIC_DRAW, glVertexAttribPointer
+                       GL_ARRAY_BUFFER, GLfloat, glBufferData, glBufferSubData, GL_STATIC_DRAW, glVertexAttribPointer
                       )
 from OpenGL.GLU import gluPerspective
 from exceptions import *
@@ -90,30 +90,34 @@ class shader():
         self.vertexBuffer = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, self.vertexBuffer)
         arrayType = GLfloat * len(self.vertexData)
-        glBufferData(GL_ARRAY_BUFFER,
-                     len(self.vertexData) * ctypes.sizeof(ctypes.c_float),
-                     arrayType(*self.vertexData),
-                     GL_STATIC_DRAW)
+
+        #initialize data for the buffer
+        target = GL_ARRAY_BUFFER
+        size = len(self.vertexData) * ctypes.sizeof(ctypes.c_float)
+        data = arrayType(*self.vertexData)
+        usage = GL_STATIC_DRAW
+        glBufferData(target, size, data, usage)
+                     
         glVertexAttribPointer(self.attrID, 3, GL_FLOAT, False, 0, None)
         glEnableVertexAttribArray(self.attrID)
         
         #access the code for the vertex and fragment shaders
-        self.vertProg = open(self.vertPath, 'r')
-        self.fragProg = open(self.fragPath, 'r')
-        self.vertCode = self.vertProg.read()
-        self.fragCode = self.fragProg.read()
-        self.vertProg.close()
-        self.fragProg.close()
+        with open(self.vertPath, 'r') as vertProg:
+            self.vertCode = vertProg.read()
+        
+        with open(self.fragPath, 'r') as fragProg:
+            self.fragCode = fragProg.read()
+        
         #compile those shaders
         self.vertShader = shaders.compileShader(self.vertCode, GL_VERTEX_SHADER)
         self.fragShader = shaders.compileShader(self.fragCode, GL_FRAGMENT_SHADER)
         self.shader = shaders.compileProgram(self.vertShader, self.fragShader)
         
 #paintGL uses shape objects, such as cube() or mesh(). Shape objects require the following:
-#a list named 'vertices' - This list is a list of points, from which edges and faces are drawn.
-#a list named 'wires'    - This list is a list of tuples which refer to vertices, dictating where to draw wires.
-#a list named 'facets'   - This list is a list of tuples which refer to vertices, ditating where to draw facets.
-#a bool named 'render'   - This bool is used to dictate whether or not to draw the shape.
+#a list named 'vertices'  - This list is a list of points, from which edges and faces are drawn.
+#a list named 'wires'     - This list is a list of tuples which refer to vertices, dictating where to draw wires.
+#a list named 'facets'    - This list is a list of tuples which refer to vertices, ditating where to draw facets.
+#a bool named 'render'    - This bool is used to dictate whether or not to draw the shape.
 #a bool named 'drawWires' - This bool is used to dictate whether wires should be drawn.
 #a bool named 'drawFaces' - This bool is used to dictate whether facets should be drawn.
 
@@ -129,6 +133,21 @@ class shader():
         glRotatef(self.rotateDegreeV + self.vOffset, 1, 0, 0)
         glRotatef(self.rotateDegreeH, 0, 0, 1)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+
+        self.vertexData = [
+                           -1, 1, 0,
+                           0, -1, 0,
+                           1, 1, 0
+                          ]
+
+        arrayType = GLfloat * len(self.vertexData)
+
+        target = GL_ARRAY_BUFFER
+        offset = 0
+        size = len(self.vertexData) * ctypes.sizeof(ctypes.c_float)
+        data = arrayType(*self.vertexData)
+        glBufferSubData(target, offset, size, data)
+
         glDrawArrays(GL_TRIANGLES, 0, 3)
         
         #for s in self.shapes:
@@ -149,41 +168,3 @@ class shader():
     def crashCleanup(self):
         self.crashFlag = True
         self.viewPort.update()
-
-class cube():
-    render = True
-    def __init__(self, location = (0, 0, 0), size = 0.1, drawWires = True, drawFaces = False, color = (1, 1, 1)):
-        self.location = location
-        self.size = size
-        self.drawWires = drawWires
-        self.drawFaces = drawFaces
-        self.color = color
-        self.compute()
-
-    def compute(self):
-        x, y, z = self.location
-        s = self.size / 2
-        self.vertices = [    #8 corner points calculated in reference to the supplied center point
-                         (-s + x, s + y, -s + z), (s + x, s + y, -s + z),
-                         (s + x, -s + y, -s + z), (-s + x, -s + y, -s + z),
-                         (-s + x, s + y, s + z), (s + x, s + y, s + z),
-                         (s + x, -s + y, s + z), (-s + x, -s + y, s + z)
-                        ]
-        self.wires = [    #12 tuples referencing the corner points
-                      (0,1), (0,3), (0,4), (2,1), (2,3), (2,6),
-                      (7,3), (7,4), (7,6), (5,1), (5,4), (5,6)
-                     ]
-        self.facets = [    #6 tuples referencing the corner points
-                       (0, 1, 2, 3), (0, 1, 6, 5), (0, 3, 7, 4),
-                       (6, 5, 1, 2), (6, 7, 4, 5), (6, 7, 3, 2)
-                      ]
-    def show(self):
-        self.render = True
-    def hide(self):
-        self.render = False
-    def move(self, location):
-        self.location = location
-        self.compute()
-    def recolor(self, col):
-        if type(col) is tuple:
-            self.color = col
