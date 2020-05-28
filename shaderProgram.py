@@ -1,11 +1,19 @@
 from OpenGL.GL import (
-                       shaders, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, glUseProgram,
-                       glLoadIdentity, glTranslatef, glRotatef,
-                       glBegin, glEnd, glClear, glVertex3fv,
-                       GL_LINES, GL_QUADS, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_FLOAT, GL_TRIANGLES, glEnableVertexAttribArray, glDrawArrays,
-                       glGenVertexArrays, glBindVertexArray, glGenBuffers, glBindBuffer,
-                       GL_ARRAY_BUFFER, GLfloat, glBufferData, glBufferSubData, GL_STATIC_DRAW, glVertexAttribPointer
-                      )
+    #imports that are no longer used:
+    #glVertex3fv,
+    shaders, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
+    glUseProgram,
+    glLoadIdentity, glTranslatef, glRotatef,
+    glBegin, glEnd, glClear,
+    GL_LINES, GL_QUADS, GL_TRIANGLES, GL_STATIC_DRAW,
+    GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_ARRAY_BUFFER,
+    GL_FLOAT, GLfloat,
+    glDrawArrays, glBufferData, glBufferSubData,
+    glGenVertexArrays, glBindVertexArray, glDeleteVertexArrays,
+    glEnableVertexAttribArray, glDisableVertexAttribArray,
+    glGenBuffers, glBindBuffer, glDeleteBuffers,
+    glVertexAttribPointer
+    )
 from OpenGL.GLU import gluPerspective
 from exceptions import *
 import ctypes
@@ -15,10 +23,10 @@ class shaderManager():          #context manager to ensure resource cleanup
         self.parent = parent
         self.viewPort = viewPort
     def __enter__(self):
-        self.shader = shader(self.parent, self.viewPort)
-        return self.shader
-    def __exit__(self):
-        self.shader.crashCleanup()
+        self._shader = shader(self.parent, self.viewPort)
+        return self._shader
+    def __exit__(self, *args):
+        self._shader.crashCleanup()
 
 class shader():
     #viewPort data
@@ -78,10 +86,10 @@ class shader():
 
     def initGL(self):
         self.vertexData = [
-                           -1, -1, 0,
-                           1, -1, 0,
-                           0, 1, 0
-                          ]
+            -1, -1, 0,
+            1, -1, 0,
+            0, 1, 0
+        ]
 
         self.vertexArrayID = glGenVertexArrays(1)
         glBindVertexArray(self.vertexArrayID)
@@ -112,6 +120,7 @@ class shader():
         self.vertShader = shaders.compileShader(self.vertCode, GL_VERTEX_SHADER)
         self.fragShader = shaders.compileShader(self.fragCode, GL_FRAGMENT_SHADER)
         self.shader = shaders.compileProgram(self.vertShader, self.fragShader)
+        glUseProgram(self.shader)
         
 #paintGL uses shape objects, such as cube() or mesh(). Shape objects require the following:
 #a list named 'vertices'  - This list is a list of points, from which edges and faces are drawn.
@@ -123,10 +132,11 @@ class shader():
 
     def paintGL(self):
         if self.crashFlag:      #run cleanup operations
+            glUseProgram(0)
             glDisableVertexAttribArray(self.attrID)
             glDeleteBuffers(1,[self.vertexBuffer])
             glDeleteVertexArrays(1, [self.vertexArrayID])
-        glUseProgram(self.shader)
+
         glLoadIdentity()
         gluPerspective(45, self.sizeX / self.sizeY, 0.1, 110.0)    #set perspective
         glTranslatef(0, 0, self.zoomLevel)
@@ -135,10 +145,10 @@ class shader():
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
         self.vertexData = [
-                           -1, 1, 0,
-                           0, -1, 0,
-                           1, 1, 0
-                          ]
+            -1, 1, 0,
+            0, -1, 0,
+            1, 1, 0
+        ]
 
         arrayType = GLfloat * len(self.vertexData)
 

@@ -12,19 +12,19 @@ class cube():
         x, y, z = self.location
         s = self.size / 2
         self.vertices = [    #8 corner points calculated in reference to the supplied center point
-                         (-s + x, s + y, -s + z), (s + x, s + y, -s + z),
-                         (s + x, -s + y, -s + z), (-s + x, -s + y, -s + z),
-                         (-s + x, s + y, s + z), (s + x, s + y, s + z),
-                         (s + x, -s + y, s + z), (-s + x, -s + y, s + z)
-                        ]
+            (-s + x, s + y, -s + z), (s + x, s + y, -s + z),
+            (s + x, -s + y, -s + z), (-s + x, -s + y, -s + z),
+            (-s + x, s + y, s + z), (s + x, s + y, s + z),
+            (s + x, -s + y, s + z), (-s + x, -s + y, s + z)
+        ]
         self.wires = [    #12 tuples referencing the corner points
-                      (0,1), (0,3), (0,4), (2,1), (2,3), (2,6),
-                      (7,3), (7,4), (7,6), (5,1), (5,4), (5,6)
-                     ]
+            (0,1), (0,3), (0,4), (2,1), (2,3), (2,6),
+            (7,3), (7,4), (7,6), (5,1), (5,4), (5,6)
+        ]
         self.facets = [    #6 tuples referencing the corner points
-                       (0, 1, 2, 3), (0, 1, 6, 5), (0, 3, 7, 4),
-                       (6, 5, 1, 2), (6, 7, 4, 5), (6, 7, 3, 2)
-                      ]
+            (0, 1, 2, 3), (0, 1, 6, 5), (0, 3, 7, 4),
+            (6, 5, 1, 2), (6, 7, 4, 5), (6, 7, 3, 2)
+        ]
     def show(self):
         self.render = True
     def hide(self):
