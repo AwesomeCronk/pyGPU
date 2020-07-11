@@ -32,6 +32,32 @@ class shader():
     def __init__(self, parent, viewPort):
         self.parent = parent
         self.viewPort = viewPort
+        self.sizeX = 100
+        self.sizeY = 100
+
+        #drawing data
+        self.rotateDegreeV = 0
+        self.rotateDegreeH = 0
+        self.zoomLevel = -5
+        self.vOffset = 0
+
+        self.shapes = []
+        #legalShapes = [cube]
+    
+        #shader data
+        self.vertPath = 'vertexShader.glsl'
+        self.fragPath = 'fragmentShader.glsl'
+        self.vertProg = None
+        self.fragProg = None
+        self.vertCode = ''
+        self.fragCode = ''
+        self.vertShader = None
+        self.fragShader = None
+
+        #crash data
+        self.crashFlag = False
+        self.viewPort.initializeGL = self.initGL
+        self.viewPort.paintGL = self.paintGL
 
     def addShapes(self, *newShapes):
         for newShape in newShapes:
